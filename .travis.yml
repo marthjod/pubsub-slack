@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - "1.16"
+
+before_install:
+  - go get -u honnef.co/go/tools/cmd/staticcheck
+  - go get -u golang.org/x/lint
+  - go get -u github.com/kisielk/errcheck
+
+script:
+  - make checks
