@@ -55,7 +55,7 @@ func main() {
 	go slackPublisher.Publish(ctx, errChan)
 
 	router := chi.NewRouter()
-	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		if _, err := w.Write([]byte("OK")); err != nil {
 			logger.Error().Err(err)
 		}
