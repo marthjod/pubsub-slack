@@ -15,10 +15,10 @@ lint:
 	# golint install is borken on travisci
 	$(golint) ./... || true
 
-staticcheck:	
+staticcheck:
 	staticcheck ./...
 
-fmt:	
+fmt:
 	@$(foreach gofile, $(gofiles_novendor),\
 			out=$$(gofmt -s -l -d -e $(gofile) | tee /dev/stderr); if [ -n "$$out" ]; then exit 1; fi;)
 

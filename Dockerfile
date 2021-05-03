@@ -8,7 +8,7 @@ WORKDIR /build
 ENV CGO_ENABLED=0
 ENV GOOS=linux
 
-RUN go get -u \
+RUN go get \
     honnef.co/go/tools/cmd/staticcheck \
     golang.org/x/lint \
     github.com/kisielk/errcheck
@@ -21,7 +21,7 @@ RUN go build \
     -o /server .
 
 
-FROM scratch
+FROM alpine
 
 COPY --from=builder /server /
 ENTRYPOINT ["/server"]
