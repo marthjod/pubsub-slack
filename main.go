@@ -72,9 +72,10 @@ func main() {
 	for {
 		select {
 		case err := <-errChan:
-			logger.Error().Err(err)
+			logger.Error().Err(err).Msg("received error")
 		case <-termChan:
 			logger.Info().Msg("shutting down")
+			os.Exit(0)
 		}
 	}
 }
