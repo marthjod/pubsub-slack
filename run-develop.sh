@@ -30,3 +30,5 @@ export GOOGLE_APPLICATION_CREDENTIALS="./service-account.json"
 # gcloud pubsub topics publish projects/${gcp_project}/topics/slack-chatops-notifications \
 #   --message "<@slackhandle> something has happened" \
 #   --attribute publish_time="$(date +%s)"
+
+# https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-upgrade-notifications
