@@ -34,7 +34,9 @@ type Option func(*Slack)
 // WithMetricsNamespace overrides the default metrics namespace (prefix).
 func WithMetricsNamespace(namespace string) func(*Slack) {
 	return func(s *Slack) {
-		s.metricsNamespace = namespace
+		if namespace != "" {
+			s.metricsNamespace = namespace
+		}
 	}
 }
 

@@ -54,7 +54,14 @@ func main() {
 	logger.Debug().Str("subscription", subscription).Msg("connected to Pub/Sub subscription")
 
 	slackClient := slack.New(cfg.SlackToken)
-	slackPublisher := publish.NewSlack(sub, slackClient, cfg.SlackChannel, cfg.IgnoreMessagesOlderThan, logger)
+	slackPublisher := publish.NewSlack(
+		sub,
+		slackClient,
+		cfg.SlackChannel,
+		cfg.IgnoreMessagesOlderThan,
+		logger,
+		publish.WithMetricsNamespace(cfg.MetricsNamespace),
+	)
 	if err := prometheus.Register(slackPublisher); err != nil {
 		logger.Fatal().Err(err).Msg("failed to register Slack publisher as Prometheus collector")
 	}
