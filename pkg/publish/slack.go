@@ -28,6 +28,7 @@ type Slack struct {
 	errCounter              prometheus.Counter
 }
 
+// Option is an option func for type Slack.
 type Option func(*Slack)
 
 // WithMetricsNamespace overrides the default metrics namespace (prefix).

@@ -27,7 +27,7 @@ func New() (Config, error) {
 		ListenAddr:              ":8080",
 		SlackChannel:            "chatops-dev",
 		IgnoreMessagesOlderThan: 10 * time.Minute,
-		MetricsNamespace:        "pubsubs-slack",
+		MetricsNamespace:        "pubsub-slack",
 	}
 	if err := arg.Parse(&c); err != nil {
 		return c, errors.Wrap(err, "failed to parse config")

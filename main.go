@@ -11,6 +11,7 @@ import (
 	"github.com/marthjod/pubsub-slack/config"
 	"github.com/marthjod/pubsub-slack/pkg/publish"
 	"github.com/nlopes/slack"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"gocloud.dev/pubsub"
@@ -54,6 +55,9 @@ func main() {
 
 	slackClient := slack.New(cfg.SlackToken)
 	slackPublisher := publish.NewSlack(sub, slackClient, cfg.SlackChannel, cfg.IgnoreMessagesOlderThan, logger)
+	if err := prometheus.Register(slackPublisher); err != nil {
+		logger.Fatal().Err(err).Msg("failed to register Slack publisher as Prometheus collector")
+	}
 	go slackPublisher.Publish(ctx, errChan)
 
 	router := chi.NewRouter()
