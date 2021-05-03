@@ -42,13 +42,14 @@ func main() {
 	subscription := fmt.Sprintf("%s://projects/%s/subscriptions/%s", subscriptionScheme, cfg.GCPProject, cfg.PubsubSubscription)
 	sub, err := pubsub.OpenSubscription(ctx, subscription)
 	if err != nil {
-		logger.Fatal().Err(err).Str("subscription", cfg.PubsubSubscription).Msg("opening subscription")
+		logger.Fatal().Err(err).Str("subscription", subscription).Msg("opening subscription")
 	}
 	defer func() {
 		if err := sub.Shutdown(ctx); err != nil {
 			logger.Error().Err(err).Msg("shutting down subscription")
 		}
 	}()
+	logger.Debug().Str("subscription", subscription).Msg("connected to Pub/Sub subscription")
 
 	slackClient := slack.New(cfg.SlackToken)
 	slackPublisher := publish.NewSlack(sub, slackClient, cfg.SlackChannel, cfg.IgnoreMessagesOlderThan, logger)
