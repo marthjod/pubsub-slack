@@ -57,17 +57,19 @@ func (s *Slack) Publish(ctx context.Context, errChan chan error) {
 		go func() {
 			defer msg.Ack()
 
-			shouldPost, err := s.isRecent(msg)
+			_, err := s.isRecent(msg)
 			if err != nil {
-				errChan <- errors.Wrap(err, "determining publish time")
-				return
+				s.logger.Warn().Err(err).Msg("determining publish time")
+				// errChan <- errors.Wrap(err, "determining publish time")
+				// TODO: return or continue?
+				// return
 			}
 
-			if shouldPost {
-				if err := s.postMessage(msg); err != nil {
-					errChan <- errors.Wrap(err, "posting message to slack")
-				}
+			// if shouldPost {
+			if err := s.postMessage(msg); err != nil {
+				errChan <- errors.Wrapf(err, "posting message to slack channel %q", s.channel)
 			}
+			// }
 		}()
 	}
 }
