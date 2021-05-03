@@ -87,13 +87,13 @@ func (s *Slack) Publish(ctx context.Context, errChan chan error) {
 		go func() {
 			defer msg.Ack()
 
-			_, err := s.isRecent(msg)
-			if err != nil {
-				s.logger.Warn().Err(err).Msg("determining publish time")
-				// errChan <- errors.Wrap(err, "determining publish time")
-				// TODO: return or continue?
-				// return
-			}
+			// _, err := s.isRecent(msg)
+			// if err != nil {
+			// 	s.logger.Warn().Err(err).Msg("determining publish time")
+			// 	// errChan <- errors.Wrap(err, "determining publish time")
+			// 	// TODO: return or continue?
+			// 	// return
+			// }
 
 			// if shouldPost {
 			if err := s.postMessage(msg); err != nil {
@@ -127,20 +127,20 @@ func getPublishTime(m *pubsub.Message) (time.Time, error) {
 	return _t, fmt.Errorf("key '%s' not found in message metadata", publishTimeMetadataKey)
 }
 
-func (s *Slack) isRecent(m *pubsub.Message) (bool, error) {
-	publishTime, err := getPublishTime(m)
-	if err != nil {
-		return false, err
-	}
-	return publishTime.After(time.Now().Add(-s.ignoreMessagesOlderThan)), nil
-}
+// func (s *Slack) isRecent(m *pubsub.Message) (bool, error) {
+// 	publishTime, err := getPublishTime(m)
+// 	if err != nil {
+// 		return false, err
+// 	}
+// 	return publishTime.After(time.Now().Add(-s.ignoreMessagesOlderThan)), nil
+// }
 
 func (s *Slack) postMessage(m *pubsub.Message) error {
 	body := string(m.Body)
 
 	publishTime, err := getPublishTime(m)
 	if err != nil {
-		s.logger.Warn().Msg("unable to extract publish time")
+		s.logger.Warn().Err(err).Msg("unable to extract publish time")
 	} else {
 		body += fmt.Sprintf(" (%s)", publishTime)
 	}
