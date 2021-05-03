@@ -77,7 +77,7 @@ func (s *Slack) receiveMessage(ctx context.Context) (*pubsub.Message, error) {
 	if err != nil && err != context.Canceled {
 		return nil, errors.Wrap(err, "receiving message from subscription")
 	}
-	s.logger.Debug().Str("pubsubMessage", fmt.Sprintf("%s", msg.Body)).Msg("received message from Pub/Sub")
+	s.logger.Debug().Str("pubsubMessage", fmt.Sprintf("%s", msg.Body)).Str("metadata", fmt.Sprintf("%v", msg.Metadata)).Msg("received message from Pub/Sub")
 	return msg, nil
 }
 
