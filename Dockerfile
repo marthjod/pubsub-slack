@@ -1,4 +1,5 @@
 FROM golang as builder
+LABEL maintainer="marthjod@gmail.com"
 
 ARG commit
 
