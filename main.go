@@ -11,6 +11,7 @@ import (
 	"github.com/marthjod/pubsub-slack/config"
 	"github.com/marthjod/pubsub-slack/pkg/publish"
 	"github.com/nlopes/slack"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"gocloud.dev/pubsub"
 	_ "gocloud.dev/pubsub/gcppubsub"
@@ -61,6 +62,7 @@ func main() {
 			logger.Error().Err(err)
 		}
 	})
+	router.Mount("/metrics", promhttp.Handler())
 
 	go func() {
 		logger.Info().Str("address", cfg.ListenAddr).Msg("listening")

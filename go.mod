@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/chi v1.5.4
 	github.com/nlopes/slack v0.6.0
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.10.0
 	github.com/rs/zerolog v1.21.0
 	gocloud.dev v0.22.0
 )

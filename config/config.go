@@ -18,6 +18,7 @@ type Config struct {
 	SlackChannel                 string        `arg:"env:SLACK_CHANNEL"`
 	PubsubSubscription           string        `arg:"env:PUBSUB_SUBSCRIPTION"`
 	IgnoreMessagesOlderThan      time.Duration `arg:"env:IGNORE_MESSAGES_OLDER_THAN"`
+	MetricsNamespace             string        `arg:"env:METRICS_NAMESPACE"`
 }
 
 // New returns a pre-filled Config.
@@ -26,6 +27,7 @@ func New() (Config, error) {
 		ListenAddr:              ":8080",
 		SlackChannel:            "chatops-dev",
 		IgnoreMessagesOlderThan: 10 * time.Minute,
+		MetricsNamespace:        "pubsubs-slack",
 	}
 	if err := arg.Parse(&c); err != nil {
 		return c, errors.Wrap(err, "failed to parse config")

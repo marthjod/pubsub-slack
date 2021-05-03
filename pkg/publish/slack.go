@@ -8,6 +8,7 @@ import (
 
 	"github.com/nlopes/slack"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog"
 	"gocloud.dev/pubsub"
 )
@@ -23,6 +24,17 @@ type Slack struct {
 	logger                  zerolog.Logger
 	errChan                 chan error
 	ignoreMessagesOlderThan time.Duration
+	metricsNamespace        string
+	errCounter              prometheus.Counter
+}
+
+type Option func(*Slack)
+
+// WithMetricsNamespace overrides the default metrics namespace (prefix).
+func WithMetricsNamespace(namespace string) func(*Slack) {
+	return func(s *Slack) {
+		s.metricsNamespace = namespace
+	}
 }
 
 // NewSlack returns a new slack publisher.
@@ -32,15 +44,29 @@ func NewSlack(
 	channel string,
 	ignoreMessagesOlderThan time.Duration,
 	logger zerolog.Logger,
+	opts ...Option,
 ) *Slack {
-	return &Slack{
+	s := &Slack{
 		sub:                     sub,
 		client:                  client,
 		channel:                 channel,
 		logger:                  logger,
 		errChan:                 make(chan error),
 		ignoreMessagesOlderThan: ignoreMessagesOlderThan,
+		metricsNamespace:        "pubsub_slack",
 	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	s.errCounter = prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: s.metricsNamespace,
+		Name:      "errors_total",
+		Help:      "Number of errors",
+	})
+
+	return s
 }
 
 // Publish receives pubsub messages and posts them to a slack channel.
@@ -51,6 +77,7 @@ func (s *Slack) Publish(ctx context.Context, errChan chan error) {
 		msg, err := s.receiveMessage(ctx)
 		if err != nil {
 			errChan <- err
+			s.errCounter.Inc()
 			continue
 		}
 
@@ -68,6 +95,7 @@ func (s *Slack) Publish(ctx context.Context, errChan chan error) {
 			// if shouldPost {
 			if err := s.postMessage(msg); err != nil {
 				errChan <- errors.Wrapf(err, "posting message to slack channel %q", s.channel)
+				s.errCounter.Inc()
 			}
 			// }
 		}()
@@ -77,6 +105,7 @@ func (s *Slack) Publish(ctx context.Context, errChan chan error) {
 func (s *Slack) receiveMessage(ctx context.Context) (*pubsub.Message, error) {
 	msg, err := s.sub.Receive(ctx)
 	if err != nil && err != context.Canceled {
+		s.errCounter.Inc()
 		return nil, errors.Wrap(err, "receiving message from subscription")
 	}
 	s.logger.Debug().Str("pubsubMessage", fmt.Sprintf("%s", msg.Body)).Str("metadata", fmt.Sprintf("%v", msg.Metadata)).Msg("received message from Pub/Sub")
@@ -120,5 +149,18 @@ func (s *Slack) postMessage(m *pubsub.Message) error {
 		s.channel,
 		opts...,
 	)
+	if err != nil {
+		s.errCounter.Inc()
+	}
 	return err
+}
+
+// Describe implements prometheus.Collector.
+func (s *Slack) Describe(ch chan<- *prometheus.Desc) {
+	s.errCounter.Describe(ch)
+}
+
+// Collect implements prometheus.Collector.
+func (s *Slack) Collect(ch chan<- prometheus.Metric) {
+	s.errCounter.Collect(ch)
 }
