@@ -61,6 +61,7 @@ func main() {
 		cfg.IgnoreMessagesOlderThan,
 		logger,
 		publish.WithMetricsNamespace(cfg.MetricsNamespace),
+		publish.WithMetadataKeys(cfg.MetadataKeys),
 	)
 	if err := prometheus.Register(slackPublisher); err != nil {
 		logger.Fatal().Err(err).Msg("failed to register Slack publisher as Prometheus collector")

@@ -24,6 +24,7 @@ export PUBSUB_SUBSCRIPTION="${pubsub_subscription}"
 export SLACK_CHANNEL="${slack_channel}"
 export LOGLEVEL="debug"
 export GOOGLE_APPLICATION_CREDENTIALS="./service-account.json"
+export METADATA_KEYS="cluster_name,cluster_location"
 
 ./cmd | jq -R 'fromjson? | .'
 
@@ -32,3 +33,6 @@ export GOOGLE_APPLICATION_CREDENTIALS="./service-account.json"
 #   --attribute publish_time="$(date +%s)"
 
 # https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-upgrade-notifications
+
+
+# "metadata":"map[cluster_location:us-central1-a cluster_name:my-cluster payload:{\"version\":\"1.17.17-gke.6700\", \"resourceType\":\"MASTER\"} project_id:123456789 type_url:type.googleapis.com/google.container.v1beta1.UpgradeAvailableEvent]"

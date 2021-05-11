@@ -3,9 +3,9 @@ package publish
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
+	"github.com/marthjod/pubsub-slack/pkg/metadata"
 	"github.com/nlopes/slack"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -26,6 +26,7 @@ type Slack struct {
 	ignoreMessagesOlderThan time.Duration
 	metricsNamespace        string
 	errCounter              prometheus.Counter
+	metadataExtractor       metadata.Extractor
 }
 
 // Option is an option func for type Slack.
@@ -37,6 +38,13 @@ func WithMetricsNamespace(namespace string) func(*Slack) {
 		if namespace != "" {
 			s.metricsNamespace = namespace
 		}
+	}
+}
+
+// WithMetadataKeys configures the metadata keys to extract values for for each message.
+func WithMetadataKeys(keys []string) func(*Slack) {
+	return func(s *Slack) {
+		s.metadataExtractor = metadata.NewExtractor(keys)
 	}
 }
 
@@ -57,6 +65,7 @@ func NewSlack(
 		errChan:                 make(chan error),
 		ignoreMessagesOlderThan: ignoreMessagesOlderThan,
 		metricsNamespace:        "pubsub_slack",
+		metadataExtractor:       metadata.NewExtractor([]string{}),
 	}
 
 	for _, opt := range opts {
@@ -115,18 +124,6 @@ func (s *Slack) receiveMessage(ctx context.Context) (*pubsub.Message, error) {
 	return msg, nil
 }
 
-func getPublishTime(m *pubsub.Message) (time.Time, error) {
-	var _t time.Time
-	if val, ok := m.Metadata[publishTimeMetadataKey]; ok {
-		t, err := strconv.ParseInt(val, 10, 64)
-		if err != nil {
-			return _t, fmt.Errorf("unable to convert '%s' metadata value", publishTimeMetadataKey)
-		}
-		return time.Unix(t, 0), nil
-	}
-	return _t, fmt.Errorf("key '%s' not found in message metadata", publishTimeMetadataKey)
-}
-
 // func (s *Slack) isRecent(m *pubsub.Message) (bool, error) {
 // 	publishTime, err := getPublishTime(m)
 // 	if err != nil {
@@ -138,17 +135,16 @@ func getPublishTime(m *pubsub.Message) (time.Time, error) {
 func (s *Slack) postMessage(m *pubsub.Message) error {
 	body := string(m.Body)
 
-	publishTime, err := getPublishTime(m)
-	if err != nil {
-		s.logger.Warn().Err(err).Msg("unable to extract publish time")
-	} else {
-		body += fmt.Sprintf(" (%s)", publishTime)
+	extractedMetadata := s.metadataExtractor.ExtractString(m)
+	if extractedMetadata != "" {
+		body += fmt.Sprintf(" (%s)", extractedMetadata)
 	}
+
 	opts := append(
 		s.messageOpts,
 		slack.MsgOptionText(body, false),
 	)
-	_, _, err = s.client.PostMessage(
+	_, _, err := s.client.PostMessage(
 		s.channel,
 		opts...,
 	)
