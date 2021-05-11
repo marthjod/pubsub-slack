@@ -13,8 +13,6 @@ import (
 	"gocloud.dev/pubsub"
 )
 
-const publishTimeMetadataKey = "publish_time"
-
 // Slack is a slack publisher subscribed to a Google Pub/Sub subscription.
 type Slack struct {
 	sub                     *pubsub.Subscription
